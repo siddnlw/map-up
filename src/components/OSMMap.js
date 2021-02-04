@@ -2,9 +2,9 @@ import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-
-const position = [24.1613484, 77.9324215];
+import { useEffect } from "react";
+import { Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { connect } from "react-redux";
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
@@ -13,24 +13,33 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const OSMMap = () => {
+const OSMMap = (props) => {
+  const map = useMap();
+  const position = props.regionInfo.points || [0, 0];
+
+  useEffect(() => {
+    map.flyTo([position[0], position[1] + 10], props.regionInfo.zoomLevel);
+  }, [position]);
+
   return (
-    <MapContainer
-      center={[position[0], position[1] + 8]}
-      zoom={5}
-      style={{ height: "90vh" }}
-    >
+    <>
       <TileLayer
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <Marker position={position}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
-        </Popup>
+        <Popup>{props.region}</Popup>
+        <Popup>{position[0]}</Popup>
       </Marker>
-    </MapContainer>
+    </>
   );
 };
 
-export default OSMMap;
+const mapStateToProps = (state) => ({
+  region: state.regions.region,
+  regionInfo: state.regions.regionInfo,
+});
+
+const mapDispatchToProps = {};
+
+export default connect(mapStateToProps, mapDispatchToProps)(OSMMap);
